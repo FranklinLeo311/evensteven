@@ -1,0 +1,23 @@
+# Render Blueprint: New > Blueprint in the Render dashboard, pick this repository, then fill in the three secrets.
+services:
+  - type: web
+    name: evensteven
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # your own Claude API key (asked for when the Blueprint is created)
+      - key: PAYPAL_CLIENT_ID
+        sync: false          # PayPal developer dashboard > Apps & Credentials > Sandbox
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_BASE_URL
+        value: https://api-m.sandbox.paypal.com
+      - key: DEFAULT_CURRENCY
+        value: USD
+      - key: AI_CALLS_PER_IP_PER_HOUR
+        value: "15"
+      - key: AI_CALLS_PER_DAY
+        value: "300"
