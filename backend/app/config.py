@@ -10,8 +10,13 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
 
+    # which AI reads receipts and plans splits: "claude", "gemini", or "auto" (Claude when its key is set, else Gemini)
+    ai_provider: str = "auto"
     anthropic_api_key: str = ""
     claude_model: str = "claude-opus-5-5"
+    # Google AI Studio key (aistudio.google.com/apikey); the free tier is enough for a demo
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.1-flash-lite,gemini-flash-lite-latest,gemini-3-flash-preview,gemini-flash-latest"
 
     paypal_client_id: str = ""
     paypal_client_secret: str = ""
@@ -24,8 +29,10 @@ class Settings(BaseSettings):
     public_url: str = "http://localhost:8090"
     # set by Render on every web service; used as the public address when PUBLIC_URL is not given
     render_external_url: str = ""
+    # set by Hugging Face Spaces (e.g. "user-evensteven.hf.space"); used the same way
+    space_host: str = ""
 
-    # limits on the two endpoints that call Claude, so a public demo can't run up the API bill
+    # limits on the two endpoints that call the AI, so a public demo can't run up the API bill
     ai_calls_per_ip_per_hour: int = 15
     ai_calls_per_day: int = 300
 
@@ -33,6 +40,9 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     settings = Settings()
-    if settings.render_external_url and settings.public_url == "http://localhost:8090":
-        settings.public_url = settings.render_external_url.rstrip("/")
+    if settings.public_url == "http://localhost:8090":
+        if settings.render_external_url:
+            settings.public_url = settings.render_external_url.rstrip("/")
+        elif settings.space_host:
+            settings.public_url = f"https://{settings.space_host.split(',')[0].strip()}"
     return settings

@@ -45,7 +45,7 @@ def health():
 def config():
     settings = get_settings()
     return {"paypal_client_id": settings.paypal_client_id, "public_url": settings.public_url,
-            "ai_ready": bool(settings.anthropic_api_key), "paypal_ready": bool(settings.paypal_client_id and settings.paypal_client_secret)}
+            "ai_ready": ai.is_ready(), "paypal_ready": bool(settings.paypal_client_id and settings.paypal_client_secret)}
 
 
 @app.post("/api/bills")

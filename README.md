@@ -4,13 +4,13 @@ Snap a receipt, say who had what in plain words, and every friend gets a PayPal 
 
 > "I had the pasta, Raj got the steak, Mia and I split the tiramisu, everyone shared the wine and bread."
 
-EvenSteven reads the receipt with Claude, turns that sentence into an item-by-item split, spreads tax, tip and
+EvenSteven reads the receipt with AI (Claude or Gemini), turns that sentence into an item-by-item split, spreads tax, tip and
 discounts fairly, and creates a PayPal order for each person. The money goes straight to the friend who paid,
 and their screen fills up live as people pay.
 
 ## Try it
 
-**Live demo: https://evensteven.onrender.com** (PayPal sandbox: no real money moves)
+**Live demo: https://franklinleo-evensteven.hf.space** (PayPal sandbox: no real money moves)
 
 1. Click **Try a sample receipt**, or upload a photo or PDF of your own receipt.
 2. Add the people, say who had what in a sentence, and click **Split**.
@@ -20,12 +20,10 @@ and their screen fills up live as people pay.
 The demo runs on a free plan: the first visit after a quiet spell takes up to a minute to wake up, and bills are cleared
 when the service restarts. Each visitor can read 15 receipts or splits per hour.
 
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/FranklinLeo311/evensteven)
-
 ## How it works
 
-1. **Read** – Claude (vision + structured outputs) reads the photo or PDF: merchant, currency, every line, tax, tip and total, with warnings when the numbers don't add up.
-2. **Understand** – Claude maps the group's description to the items, including uneven shares ("Sam had two of the three beers") and corrections ("actually Mia skipped the wine"). It flags real ambiguities and writes a short note for each person.
+1. **Read** – the AI (vision + schema-enforced JSON output) reads the photo or PDF: merchant, currency, every line, tax, tip and total, with warnings when the numbers don't add up.
+2. **Understand** – the AI maps the group's description to the items, including uneven shares ("Sam had two of the three beers") and corrections ("actually Mia skipped the wine"). It flags real ambiguities and writes a short note for each person.
 3. **Settle** – the amounts are worked out in code, not by the model: the bill total is spread in proportion to what each person had and rounded with the largest-remainder method, so the shares always add up to the receipt to the cent.
 4. **Pay** – each share gets a pay page with PayPal Smart Buttons. The server creates a PayPal **Orders v2** order (with the payer's PayPal email as the `payee`, so money goes to them directly) and captures it after approval. `PayPal-Request-Id` keeps retries from creating duplicate orders or captures.
 
@@ -33,19 +31,20 @@ when the service restarts. Each visitor can read 15 receipts or splits per hour.
 
 - **Frontend:** React 19, Vite, Tailwind CSS 4, PayPal JS SDK
 - **Backend:** Python, FastAPI, SQLite
-- **AI:** Claude Opus 5.5 through the Anthropic Python SDK
+- **AI:** Claude Opus 5.5 through the Anthropic Python SDK, or Google Gemini (free tier) through its REST API with a JSON schema.
+  `AI_PROVIDER` picks one; `auto` uses Claude when its key is set, otherwise Gemini. The live demo runs on Gemini
 - **Payments:** PayPal REST API (OAuth 2.0 client credentials, Orders v2 create + capture), sandbox
 
 ## Run it locally
 
-You need Python 3.11+, Node 20+, a Claude API key and a PayPal developer sandbox app.
+You need Python 3.11+, Node 20+, a Claude API key or a free Gemini key ([aistudio.google.com/apikey](https://aistudio.google.com/apikey)), and a PayPal developer sandbox app.
 
 ```bash
 # backend
 cd backend
 python -m venv .venv
 .venv/Scripts/pip install -r requirements.txt   # macOS/Linux: .venv/bin/pip
-cp .env.example .env                             # fill in ANTHROPIC_API_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
+cp .env.example .env                             # fill in ANTHROPIC_API_KEY or GEMINI_API_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
 
 # frontend (built into frontend/dist and served by the backend)
 cd ../frontend
@@ -76,16 +75,22 @@ Open http://localhost:8090. For frontend development, run `npm run dev` in `fron
 | POST | `/api/shares/{id}/order` | Create the PayPal order for that share |
 | POST | `/api/shares/{id}/capture` | Capture the approved order |
 
-## Deploy your own copy (Render)
+## Deploy your own copy
+
+**Hugging Face Spaces (free, no card):** create a Space with the **Docker** SDK, upload this repository with this front matter
+at the top of the Space's README (`sdk: docker`, `app_port: 8090`), and add `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`),
+`PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` as Space secrets. Pay links use the Space address automatically.
+
+### Render
 
 The repository has a `Dockerfile` (builds the React app and serves it from FastAPI) and a `render.yaml` Blueprint.
 
 1. Push this repository to GitHub.
 2. In [Render](https://dashboard.render.com/), choose **New → Blueprint** and pick the repository.
-3. Fill in `ANTHROPIC_API_KEY`, `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` (sandbox) when asked, then **Apply**.
+3. Fill in `ANTHROPIC_API_KEY` (or add `GEMINI_API_KEY`), `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` (sandbox) when asked, then **Apply**.
 4. When the deploy is live, open `https://<service-name>.onrender.com`. Pay links use that address automatically.
 
-`AI_CALLS_PER_IP_PER_HOUR` and `AI_CALLS_PER_DAY` cap the Claude calls so a public demo can't run up the API bill.
+`AI_CALLS_PER_IP_PER_HOUR` and `AI_CALLS_PER_DAY` cap the AI calls so a public demo can't run up the API bill.
 
 ## Built for the PayPal AI Hackathon
 

@@ -8,7 +8,9 @@ services:
     autoDeploy: true
     envVars:
       - key: ANTHROPIC_API_KEY
-        sync: false          # your own Claude API key (asked for when the Blueprint is created)
+        sync: false          # your own Claude API key (asked for when the Blueprint is created); leave empty to use Gemini
+      - key: GEMINI_API_KEY
+        sync: false          # free Google AI Studio key, used when no Claude key is set
       - key: PAYPAL_CLIENT_ID
         sync: false          # PayPal developer dashboard > Apps & Credentials > Sandbox
       - key: PAYPAL_CLIENT_SECRET
