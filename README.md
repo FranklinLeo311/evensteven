@@ -10,15 +10,15 @@ and their screen fills up live as people pay.
 
 ## Try it
 
-**Live demo: https://franklinleo-evensteven.hf.space** (PayPal sandbox: no real money moves)
+**Live demo: https://evensteven-five.vercel.app** (PayPal sandbox: no real money moves)
 
 1. Click **Try a sample receipt**, or upload a photo or PDF of your own receipt.
 2. Add the people, say who had what in a sentence, and click **Split**.
 3. Open a person's pay link and pay with a PayPal sandbox **Personal** test account
    (create one under *Testing Tools → Sandbox Accounts* in the [PayPal Developer Dashboard](https://developer.paypal.com/dashboard/)).
 
-The demo runs on a free plan: the first visit after a quiet spell takes up to a minute to wake up, and bills are cleared
-when the service restarts. Each visitor can read 15 receipts or splits per hour.
+The demo runs on free plans (Vercel, Neon, Gemini's free tier): the first request after a quiet spell can take a few
+seconds, and each visitor can read 15 receipts or splits per hour.
 
 ## How it works
 
@@ -77,9 +77,15 @@ Open http://localhost:8090. For frontend development, run `npm run dev` in `fron
 
 ## Deploy your own copy
 
-**Hugging Face Spaces (free, no card):** create a Space with the **Docker** SDK, upload this repository with this front matter
-at the top of the Space's README (`sdk: docker`, `app_port: 8090`), and add `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`),
-`PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET` as Space secrets. Pay links use the Space address automatically.
+**Vercel + Neon (how the live demo runs, free, no card):** Vercel serves the React app and runs the FastAPI backend as one
+Python function (`api/index.py`, `vercel.json`); bills are stored in a free [Neon](https://neon.tech) Postgres database.
+
+1. Create a Neon project and copy its pooled connection string.
+2. Import this repository into [Vercel](https://vercel.com/new) (no framework preset; `vercel.json` has the build settings).
+3. Add the environment variables `DATABASE_URL` (the Neon string), `GEMINI_API_KEY` (or `ANTHROPIC_API_KEY`),
+   `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`, then deploy. Pay links use the Vercel address automatically.
+
+Without `DATABASE_URL` the app uses a local SQLite file, which is what `Run it locally` and the Docker image use.
 
 ### Render
 
