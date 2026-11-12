@@ -25,12 +25,16 @@ class Settings(BaseSettings):
     # used when the receipt's currency is one PayPal can't settle
     default_currency: str = "USD"
     database_path: Path = BACKEND_DIR / "evensteven.db"
+    # Postgres connection string (e.g. Neon); when set it is used instead of the SQLite file
+    database_url: str = ""
     # public address of the app, used to build the pay links shared with friends
     public_url: str = "http://localhost:8090"
     # set by Render on every web service; used as the public address when PUBLIC_URL is not given
     render_external_url: str = ""
     # set by Hugging Face Spaces (e.g. "user-evensteven.hf.space"); used the same way
     space_host: str = ""
+    # set by Vercel (e.g. "evensteven.vercel.app")
+    vercel_project_production_url: str = ""
 
     # limits on the two endpoints that call the AI, so a public demo can't run up the API bill
     ai_calls_per_ip_per_hour: int = 15
@@ -43,6 +47,8 @@ def get_settings() -> Settings:
     if settings.public_url == "http://localhost:8090":
         if settings.render_external_url:
             settings.public_url = settings.render_external_url.rstrip("/")
+        elif settings.vercel_project_production_url:
+            settings.public_url = f"https://{settings.vercel_project_production_url}"
         elif settings.space_host:
             settings.public_url = f"https://{settings.space_host.split(',')[0].strip()}"
     return settings
